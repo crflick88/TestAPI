@@ -36,13 +36,17 @@ var User   = require('./app/models/userModel');
 // =============================================================================
 var router = express.Router();
 
+//Setup Router
+setupRoute = require('./app/routes/setupRoute')(User);
+app.use('/api/setup',setupRoute);
+
 //Authenticate Route
 authenticateRoute = require('./app/routes/authenticateRoute')(User);
 app.use('/api/authenticate',authenticateRoute);
 
 // middleware to use for all requests
 router.use('/api',function(req,res,next){
-    console.log('authentication occures now.');
+    console.log('Authentication occures here.');
     // check header or url parameters or post parameters for token
     var token = req.body.token || req.query.token || req.headers['x-access-token'];
 
@@ -80,9 +84,7 @@ app.use('/api/users',userRoute);
 bearRoute = require('./app/routes/bearRoute')(Bear);
 app.use('/api/bears',bearRoute);
 
-//Setup Router
-setupRoute = require('./app/routes/setupRoute')(User);
-app.use('/api/setup',setupRoute);
+
 
 
 
