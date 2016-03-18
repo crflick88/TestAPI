@@ -4,7 +4,9 @@
 // =============================================================================
 var mongoose   = require('mongoose');
 //mongoose.connect('mongodb://localhost:27017/movie'); // connect to our database
-mongoose.connect('mongodb://user:user@ds015909.mlab.com:15909/movie'); // connect to our database
+//mongoose.connect('mongodb://user:user@ds015909.mlab.com:15909/movie'); // connect to our database
+mongoose.connect('mongodb://user:user@ds015899.mlab.com:15899/heroku_5fc48tw8');
+
 
 var Movie = require('./app/models/movie');
 
