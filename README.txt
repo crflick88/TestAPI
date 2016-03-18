@@ -1,0 +1,1 @@
+This is an aurelia project of how to learn the language based on a PluralSight's tutorial.

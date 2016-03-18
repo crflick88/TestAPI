@@ -1,11 +1,24 @@
 {
-  "name": "api1",
+  "name": "node-api",
   "main": "server.js",
   "dependencies": {
-    "body-parser": "~1.0.1",
     "express": "~4.0.0",
-    "jsonwebtoken": "^5.5.0",
     "mongoose": "~3.6.13",
-    "morgan": "^1.6.1"
+    "body-parser": "~1.0.1"
+  },
+  "jspm": {
+    "directories": {
+      "baseURL": "assets"
+    },
+    "dependencies": {
+      "aurelia-bootstrapper": "npm:aurelia-bootstrapper@^1.0.0-beta.1.1.4",
+      "aurelia-http-client": "npm:aurelia-http-client@^1.0.0-beta.1.1.2",
+      "bootstrap": "github:twbs/bootstrap@^3.3.6"
+    },
+    "devDependencies": {
+      "babel": "npm:babel-core@^5.8.24",
+      "babel-runtime": "npm:babel-runtime@^5.8.24",
+      "core-js": "npm:core-js@^1.1.4"
+    }
   }
 }

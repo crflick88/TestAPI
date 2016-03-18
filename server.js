@@ -2,93 +2,121 @@
 
 // BASE SETUP
 // =============================================================================
+var mongoose   = require('mongoose');
+mongoose.connect('mongodb://localhost:27017/movie'); // connect to our database
+
+var Movie = require('./app/models/movie');
 
 // call the packages we need
-var express     = require('express');
-var app         = express();
-var bodyParser  = require('body-parser');
-var morgan      = require('morgan');
-
-var jwt    = require('jsonwebtoken'); // used to create, sign, and verify tokens
-var config = require('./config'); // get our config file
+var express    = require('express');        // call express
+var app        = express();                 // define our app using express
+var bodyParser = require('body-parser');
 
 // configure app to use bodyParser()
 // this will let us get the data from a POST
-app.use(bodyParser.urlencoded({extended:true})); //what is extended for????
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-//app.set('superSecret',config.secret);
 
-var PORT = process.env.PORT || 8000;
-
-// use morgan to log requests to the console
-app.use(morgan('dev'));
-
-// BASE SETUP
-// =============================================================================
-var mongoose = require('mongoose');
-//mongoose.connect('mongodb://admin:admin@ds035735.mongolab.com:35735/api1db');
-mongoose.connect(config.database);
-
-var Bear    = require('./app/models/bearModel');
-var User   = require('./app/models/userModel');
+var port = process.env.PORT || 8080;        // set our port
 
 // ROUTES FOR OUR API
 // =============================================================================
-var router = express.Router();
-
-//Setup Router
-setupRoute = require('./app/routes/setupRoute')(User);
-app.use('/api/setup',setupRoute);
-
-//Authenticate Route
-authenticateRoute = require('./app/routes/authenticateRoute')(User);
-app.use('/api/authenticate',authenticateRoute);
+var router = express.Router();              // get an instance of the express Router
 
 // middleware to use for all requests
-router.use('/api',function(req,res,next){
-    console.log('Authentication occures here.');
-    // check header or url parameters or post parameters for token
-    var token = req.body.token || req.query.token || req.headers['x-access-token'];
-
-    if (token){
-        // verifies secret and checks exp
-        jwt.verify(token,config.secret,function(err,decoded){
-            if(err)
-                return res.json({success:false,message:'Failed to authenticate token.'});
-            
-            // if everything is good, save to request for use in other routes
-            req.decoded = decoded;
-            next();
-        });
-    }else{
-        // if there is no token
-        // return an error
-        return res.status(403).send({success:false,message:'No token provided.'});
-    }
-    
+router.use(function(req, res, next) {
+    // do logging
+    console.log('Middleware working.. Something is happening.');
+    next(); // make sure we go to the next routes and don't stop here
 });
+
 
 // test route to make sure everything is working (accessed at GET http://localhost:8080/api)
-router.get('/', function(req,res){
-    res.json({message: 'yahooo welcome to my first api!'});
+router.get('/', function(req, res) {
+    res.json({ message: 'hooray! welcome to our api!' });   
 });
 
-//server router
-app.use('/',router);
+// more routes for our API will happen here
+// ----------------------------------------------------
+router.route('/movies')
 
-//User Route
-userRoute = require('./app/routes/userRoute')(User);
-app.use('/api/users',userRoute);
+    // create a movie (accessed at POST http://localhost:8080/api/movies)
+    .post(function(req, res) {
+        
+        var movie = new Movie();      // create a new instance of the Movie model
+        movie.title = req.body.title;  // set the movies info (comes from the request)
+        movie.author = req.body.author; 
+        movie.year = req.body.year; 
 
-//Bear Route
-bearRoute = require('./app/routes/bearRoute')(Bear);
-app.use('/api/bears',bearRoute);
+        // save the movie and check for errors
+        movie.save(function(err) {
+            if (err)
+                res.send(err);
 
+            res.json({ message: 'Movie created!' });
+        });
+        
+        
+    })// get all the movies (accessed at GET http://localhost:8080/api/movies)
+    .get(function(req, res) {
+        Movie.find(function(err, movies) {
+            if (err)
+                res.send(err);
 
+        res.json(movies);
+        });
+    });
 
+// on routes that end in /movies/:movie_id
+// ----------------------------------------------------
+router.route('/movies/:movie_id')
 
+    // get the movie with that id (accessed at GET http://localhost:8080/api/movies/:movie_id)
+    .get(function(req, res) {
+        Movie.findById(req.params.movie_id, function(err, movie) {
+            if (err)
+                res.send(err);
+            res.json(movie);
+        });
+    })
+    // update the movie with this id (accessed at PUT http://localhost:8080/api/movies/:movie_id)
+    .put(function(req, res) {
+
+        // use our movie model to find the movie we want
+        Movie.findById(req.params.movie_id, function(err, movie) {
+
+            if (err)
+                res.send(err);
+
+            movie.title = req.body.title;  // update the movies info
+
+            // save the movie
+            movie.save(function(err) {
+                if (err)
+                    res.send(err);
+
+                res.json({ message: 'Movie updated!' });
+            });
+
+        });
+    })
+// delete the movie with this id (accessed at DELETE http://localhost:8080/api/movies/:movie_id)
+    .delete(function(req, res) {
+        Movie.remove({
+            _id: req.params.movie_id
+        }, function(err, movie) {
+            if (err)
+                res.send(err);
+
+            res.json({ message: 'Successfully deleted' });
+        });
+    });
+
+// REGISTER OUR ROUTES -------------------------------
+// all of our routes will be prefixed with /api
+app.use('/api', router);
 
 // START THE SERVER
 // =============================================================================
-app.listen(PORT);
-console.log('Magic heppens on port ' + PORT);
+app.listen(port);
+console.log('Magic happens on port ' + port);
